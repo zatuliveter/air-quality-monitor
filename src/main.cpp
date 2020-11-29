@@ -58,13 +58,12 @@ void displayData()
   
   if (pm25 != pm25Prev)
   {
-    uint pm25Color;
-    if (pm25 <= 15)       pm25Color = TFT_GREEN;
-    else if (pm25 <= 25)  pm25Color = TFT_GREENYELLOW;
-    else if (pm25 <= 75)  pm25Color = TFT_ORANGE;
-    else if (pm25 <= 150) pm25Color = TFT_RED;
-    else                  pm25Color = TFT_VIOLET;
-
+    uint pm25Color = TFT_VIOLET;
+    if (pm25 <= 150) pm25Color = TFT_RED;
+    if (pm25 <= 75)  pm25Color = TFT_ORANGE;
+    if (pm25 <= 25)  pm25Color = TFT_GREENYELLOW;
+    if (pm25 <= 15)  pm25Color = TFT_GREEN;
+    
     tft.setTextFont(7);
     tft.setTextSize(1);    
     tft.setTextDatum(TC_DATUM);
@@ -86,13 +85,12 @@ void displayData()
    
   if (co2 != co2Prev)
   {
-    uint co2Color;
-    if (co2 <= 500)       co2Color = TFT_GREEN;
-    else if (co2 <= 600)  co2Color = TFT_GREENYELLOW;
-    else if (co2 <= 800)  co2Color = TFT_ORANGE;
-    else if (co2 <= 1000) co2Color = TFT_RED;
-    else                  co2Color = TFT_VIOLET;
-        
+    uint co2Color = TFT_VIOLET;
+    if (co2 <= 1000) co2Color = TFT_RED;                    
+    if (co2 <= 800)  co2Color = TFT_ORANGE;
+    if (co2 <= 600)  co2Color = TFT_GREENYELLOW;
+    if (co2 <= 500)  co2Color = TFT_GREEN;
+       
     tft.setTextFont(7);
     tft.setTextSize(1);    
     tft.setTextDatum(TC_DATUM);
