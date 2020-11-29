@@ -21,11 +21,13 @@ HardwareSerial pmsSerial(1);
 PMS pms(pmsSerial);
 PMS::DATA data;
 int pm25 = 0;
+int pm25Prev = 0;
 
 // mhz sensor setup
 HardwareSerial mhzSerial(2);
 MHZ19 mhz; 
 int co2 = 0;
+int co2Prev = -1;
 
 
 void setup(void) {
@@ -43,8 +45,73 @@ void setup(void) {
   mhz.autoCalibration();   
 }
 
-unsigned long getDataTimer = 0;
+String leading(String str, char leadingSymbol, int numberOfSymbols)
+{
+  for(int i=0; i<numberOfSymbols; i++) str = leadingSymbol + str;
+  return str.substring( str.length() - numberOfSymbols);
+}
 
+void displayData()
+{  
+  tft.setTextColor(TFT_WHITE, TFT_BLACK); 
+  tft.setTextFont(4);
+  tft.setTextSize(1);
+  tft.drawString("PM 2.5:", 0, 0);
+  
+  if (pm25 != pm25Prev)
+  {
+    uint pm25Color;
+    if (pm25 <= 15)       pm25Color = TFT_GREEN;
+    else if (pm25 <= 25)  pm25Color = TFT_GREENYELLOW;
+    else if (pm25 <= 75)  pm25Color = TFT_ORANGE;
+    else if (pm25 <= 150) pm25Color = TFT_RED;
+    else                  pm25Color = TFT_VIOLET;
+
+    String pm25Str = leading(String(pm25), ' ', 4);
+    
+    tft.setTextFont(7);
+    tft.setTextSize(1);
+
+    tft.setTextColor(TFT_BLACK, TFT_BLACK);  
+    tft.drawString("----", 0, 25);
+
+    tft.setTextColor(pm25Color, TFT_BLACK);          
+    tft.drawString(pm25Str, 0, 25);
+
+    pm25Prev = pm25;
+  }
+
+  tft.setTextColor(TFT_WHITE, TFT_BLACK); 
+  tft.setTextFont(4);
+  tft.setTextSize(1);
+  tft.drawString("CO2:", 0, 77);
+   
+  if (co2 != co2Prev)
+  {
+    uint co2Color;
+    if (co2 <= 500)       co2Color = TFT_GREEN;
+    else if (co2 <= 600)  co2Color = TFT_GREENYELLOW;
+    else if (co2 <= 800)  co2Color = TFT_ORANGE;
+    else if (co2 <= 1000) co2Color = TFT_RED;
+    else                  co2Color = TFT_VIOLET;
+    
+    String co2Str = leading(String(co2), ' ', 4);
+    
+    tft.setTextFont(7);
+    tft.setTextSize(1);
+
+    tft.setTextColor(TFT_BLACK, TFT_BLACK);  
+    tft.drawString("----", 0, 102);
+        
+    tft.setTextColor(co2Color, TFT_BLACK); 
+    tft.drawString(co2Str, 0, 102);
+    
+    co2Prev = co2;
+  }
+}
+
+
+unsigned long getDataTimer = 0;
 void loop() {
   
   if (pms.read(data))
@@ -56,34 +123,8 @@ void loop() {
   {
     co2 = mhz.getCO2();
     
+    displayData();
+
     getDataTimer = millis();
   }
-
-  // Set "cursor" at top left corner of display (0, 0) and select font 2
-  // (cursor will move to next line automatically during printing with 'tft.println'
-  //  or stay on the line is there is room for the text with tft.print)
-  tft.setCursor(0, 0, 4);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK); 
-  tft.setTextSize(1);
-  // We can now plot text on screen using the "print" class
-  tft.println("pm2.5:");
-  
-  tft.setTextColor(TFT_ORANGE, TFT_BLACK); 
-  tft.setTextFont(7);
-  tft.setTextSize(1);
-  tft.print(pm25);
-  tft.println(" ");
-  
-  tft.setTextFont(4);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK); 
-  tft.setTextSize(1);
-  tft.println("CO2:");
- 
-  tft.setTextColor(TFT_GREEN, TFT_BLACK); 
-  tft.setTextFont(7);
-  tft.setTextSize(1);
-  tft.print(co2);
-  tft.println(" ");
-
-  delay(1000);
 }
