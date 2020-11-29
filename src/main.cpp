@@ -45,14 +45,9 @@ void setup(void) {
   mhz.autoCalibration();   
 }
 
-String leading(String str, char leadingSymbol, int numberOfSymbols)
-{
-  for(int i=0; i<numberOfSymbols; i++) str = leadingSymbol + str;
-  return str.substring( str.length() - numberOfSymbols);
-}
-
 void displayData()
 {  
+  tft.setTextDatum(TL_DATUM);
   tft.setTextColor(TFT_WHITE, TFT_BLACK); 
   tft.setTextFont(4);
   tft.setTextSize(1);
@@ -67,20 +62,20 @@ void displayData()
     else if (pm25 <= 150) pm25Color = TFT_RED;
     else                  pm25Color = TFT_VIOLET;
 
-    String pm25Str = leading(String(pm25), ' ', 4);
-    
     tft.setTextFont(7);
-    tft.setTextSize(1);
-
+    tft.setTextSize(1);    
+    tft.setTextDatum(TC_DATUM);
+    
     tft.setTextColor(TFT_BLACK, TFT_BLACK);  
-    tft.drawString("----", 0, 25);
+    tft.drawNumber(pm25Prev, 64, 25);
 
     tft.setTextColor(pm25Color, TFT_BLACK);          
-    tft.drawString(pm25Str, 0, 25);
+    tft.drawNumber(pm25, 64, 25);
 
     pm25Prev = pm25;
   }
 
+  tft.setTextDatum(TL_DATUM);
   tft.setTextColor(TFT_WHITE, TFT_BLACK); 
   tft.setTextFont(4);
   tft.setTextSize(1);
@@ -94,17 +89,16 @@ void displayData()
     else if (co2 <= 800)  co2Color = TFT_ORANGE;
     else if (co2 <= 1000) co2Color = TFT_RED;
     else                  co2Color = TFT_VIOLET;
-    
-    String co2Str = leading(String(co2), ' ', 4);
-    
+        
     tft.setTextFont(7);
-    tft.setTextSize(1);
+    tft.setTextSize(1);    
+    tft.setTextDatum(TC_DATUM);
 
     tft.setTextColor(TFT_BLACK, TFT_BLACK);  
-    tft.drawString("----", 0, 102);
+    tft.drawNumber(co2Prev, 64, 102);
         
     tft.setTextColor(co2Color, TFT_BLACK); 
-    tft.drawString(co2Str, 0, 102);
+    tft.drawNumber(co2, 64, 102);
     
     co2Prev = co2;
   }
@@ -119,7 +113,7 @@ void loop() {
     pm25 = data.PM_AE_UG_2_5;    
   }  
 
-  if (millis() - getDataTimer >= 2500)
+  if (millis() - getDataTimer >= 1000)
   {
     co2 = mhz.getCO2();
     
