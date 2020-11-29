@@ -29,6 +29,7 @@ MHZ19 mhz;
 int co2 = 0;
 int co2Prev = -1;
 
+uint16_t labelColor = tft.color565(230, 220, 160);
 
 void setup(void) {
   // display init
@@ -41,14 +42,16 @@ void setup(void) {
   
   // MH-Z19 CO2 Sensor Config:
   mhzSerial.begin(9600, SERIAL_8N1, 4, 0);
-  mhz.begin(mhzSerial); 
+  mhz.begin(mhzSerial);
+  mhz.setRange(2000);
+  mhz.setFilter();
   mhz.autoCalibration();   
 }
 
 void displayData()
 {  
   tft.setTextDatum(TL_DATUM);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK); 
+  tft.setTextColor(labelColor, TFT_BLACK); 
   tft.setTextFont(4);
   tft.setTextSize(1);
   tft.drawString("PM 2.5:", 0, 0);
@@ -76,7 +79,7 @@ void displayData()
   }
 
   tft.setTextDatum(TL_DATUM);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK); 
+  tft.setTextColor(labelColor, TFT_BLACK); 
   tft.setTextFont(4);
   tft.setTextSize(1);
   tft.drawString("CO2:", 0, 77);
@@ -97,8 +100,14 @@ void displayData()
     tft.setTextColor(TFT_BLACK, TFT_BLACK);  
     tft.drawNumber(co2Prev, 64, 102);
         
-    tft.setTextColor(co2Color, TFT_BLACK); 
-    tft.drawNumber(co2, 64, 102);
+    if (co2 == 0) {
+      tft.setTextColor(labelColor, TFT_BLACK); 
+      tft.drawString("---", 64, 102);
+    }
+    else {
+      tft.setTextColor(co2Color, TFT_BLACK); 
+      tft.drawNumber(co2, 64, 102);
+    }
     
     co2Prev = co2;
   }
