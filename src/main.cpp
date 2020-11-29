@@ -21,7 +21,7 @@ HardwareSerial pmsSerial(1);
 PMS pms(pmsSerial);
 PMS::DATA data;
 int pm25 = 0;
-int pm25Prev = 0;
+int pm25Prev = -1;
 
 // mhz sensor setup
 HardwareSerial mhzSerial(2);
