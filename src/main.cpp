@@ -34,7 +34,7 @@ uint16_t labelColor = tft.color565(230, 220, 160);
 void setup(void) {
   // display init
   tft.init();
-  tft.setRotation(2);
+  tft.setRotation(4);
   tft.fillScreen(TFT_BLACK);
 
   // pms sensor init
