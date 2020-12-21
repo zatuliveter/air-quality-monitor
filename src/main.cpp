@@ -101,9 +101,14 @@ void displayData()
     tft.setTextFont(7);
     tft.setTextSize(1);    
     tft.setTextDatum(TC_DATUM);
-
+    
     tft.setTextColor(TFT_BLACK);  
-    tft.drawNumber(co2Prev, 64, 80);
+    if (co2Prev == 0) {
+      tft.drawString("---", 64, 80);
+    }
+    else {
+      tft.drawNumber(co2Prev, 64, 80);
+    }
         
     if (co2 == 0) {
       tft.setTextColor(labelColor); 
