@@ -3,6 +3,11 @@
 #include <TFT_eSPI.h>
 #include <HardwareSerial.h>
 
+// BME related header files
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
 // PMS Library, from arduino library manager.
 // Mariusz Kacki 1.1.0 
 // https://github.com/fu-hsi/pms
@@ -29,6 +34,13 @@ MHZ19 mhz;
 int co2 = 0;
 int co2Prev = -1;
 
+// bme sensor setup
+Adafruit_BME280 bme; // I2C default pins (SCL=IO22, SDA=IO21 on ESP32)
+float temp = 0;
+float pressure = 0;
+float humidity = 0;
+
+
 uint16_t labelColor = tft.color565(230, 220, 160);
 
 void setup(void) {
@@ -45,17 +57,18 @@ void setup(void) {
   mhz.begin(mhzSerial);
   mhz.setRange(2000);
   mhz.setFilter();
-  mhz.autoCalibration();   
+  mhz.autoCalibration(); 
+  
+  // BME280 Sensor Config:
+  if (! bme.begin(0x76, &Wire)) {
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+    while (1);
+  }
+
 }
 
 void displayData()
-{  
-  tft.setTextDatum(TL_DATUM);
-  tft.setTextColor(labelColor, TFT_BLACK); 
-  tft.setTextFont(4);
-  tft.setTextSize(1);
-  tft.drawString("PM 2.5:", 0, 0);
-  
+{ 
   if (pm25 != pm25Prev)
   {
     uint pm25Color = TFT_VIOLET;
@@ -68,21 +81,15 @@ void displayData()
     tft.setTextSize(1);    
     tft.setTextDatum(TC_DATUM);
     
-    tft.setTextColor(TFT_BLACK, TFT_BLACK);  
+    tft.setTextColor(TFT_BLACK);  
     tft.drawNumber(pm25Prev, 64, 25);
 
-    tft.setTextColor(pm25Color, TFT_BLACK);          
+    tft.setTextColor(pm25Color);          
     tft.drawNumber(pm25, 64, 25);
 
     pm25Prev = pm25;
   }
 
-  tft.setTextDatum(TL_DATUM);
-  tft.setTextColor(labelColor, TFT_BLACK); 
-  tft.setTextFont(4);
-  tft.setTextSize(1);
-  tft.drawString("CO2:", 0, 77);
-   
   if (co2 != co2Prev)
   {
     uint co2Color = TFT_VIOLET;
@@ -95,26 +102,54 @@ void displayData()
     tft.setTextSize(1);    
     tft.setTextDatum(TC_DATUM);
 
-    tft.setTextColor(TFT_BLACK, TFT_BLACK);  
-    tft.drawNumber(co2Prev, 64, 102);
+    tft.setTextColor(TFT_BLACK);  
+    tft.drawNumber(co2Prev, 64, 80);
         
     if (co2 == 0) {
-      tft.setTextColor(labelColor, TFT_BLACK); 
-      tft.drawString("---", 64, 102);
+      tft.setTextColor(labelColor); 
+      tft.drawString("---", 64, 80);
     }
     else {
-      tft.setTextColor(co2Color, TFT_BLACK); 
-      tft.drawNumber(co2, 64, 102);
+      tft.setTextColor(co2Color); 
+      tft.drawNumber(co2, 64, 80);
     }
     
     co2Prev = co2;
   }
+  
+  tft.setTextDatum(TL_DATUM);
+  tft.setTextColor(labelColor); 
+  tft.setTextFont(2);
+  tft.setTextSize(1);
+  int y = 0;
+  tft.drawString("PM", 0, y + 32);
+  tft.drawString("2.5", 0, y + 48);
+  
+  tft.drawString("C", 0, y + 80);
+  tft.drawString("O", 0, y + 93);  
+  tft.drawString("2", 0, y + 106);
+  
+
+  tft.setTextDatum(TL_DATUM);
+  tft.setTextColor(labelColor, TFT_BLACK); 
+  tft.setTextFont(4);
+  tft.setTextSize(1);
+  
+  String strTempAndHumidity = String(temp, 1) + "`  " + String(humidity, 0) + "%";
+  tft.setTextDatum(TC_DATUM);
+  tft.drawString(strTempAndHumidity, 64, 0);
+  
+  String strPressure = String(pressure, 2) + " kPa";
+  tft.setTextDatum(TC_DATUM);
+  tft.drawString(strPressure, 64, 133);
+  
 }
 
 
 unsigned long getDataTimer = 0;
-void loop() {
-  
+
+void loop() 
+{  
   if (pms.read(data))
   {
     pm25 = data.PM_AE_UG_2_5;    
@@ -122,7 +157,13 @@ void loop() {
 
   if (millis() - getDataTimer >= 1000)
   {
+    // reading co2
     co2 = mhz.getCO2();
+
+    // reading bme
+    temp = bme.readTemperature();
+    pressure = bme.readPressure() / 1000.0F;
+    humidity = bme.readHumidity();
     
     displayData();
 
